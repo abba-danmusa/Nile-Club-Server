@@ -11,12 +11,21 @@
   "author": "abba_danmusa",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
+    "coderain": "^1.1.0",
+    "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "es6-promisify": "^7.0.0",
     "express": "^4.18.2",
+    "html-to-text": "^9.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "juice": "^9.1.0",
     "mongoose": "^8.0.0",
+    "nodemailer": "^6.9.7",
     "nodemon": "^3.0.1",
+    "pug": "^3.0.2",
     "socket.io": "^4.7.2"
   }
 }

@@ -15,8 +15,11 @@ exports.validationErrors = (err, req, res, next) => {
   if (!err.errors) {
     return next(err)
   }  
-  console.log(err)
-  res.status(400).send(err)
+  console.log(err.message)
+  res.status(400).json({
+    status: 'error',
+    message: err.message
+  })
 }
 
 /* 
