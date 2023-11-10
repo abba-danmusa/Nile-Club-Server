@@ -3,6 +3,7 @@ const path = require('path')
 const bodyParser = require("body-parser")
 const errorHandlers = require('./handlers/errorHandlers')
 const cors = require('cors')
+const compression = require('compression')
 const { createServer } = require("http")
 const { Server } = require("socket.io")
 
@@ -14,9 +15,10 @@ app.set('view engine', 'pug')
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
+app.use(compression()) // compress response bodies
 
 // tell express to use your routes
-
+app.use('/authentication/', require('./routes/authentication'))
 
 // if the above routes didn't work, 404 them and forward to error handlers
 app.use(errorHandlers.notFound)

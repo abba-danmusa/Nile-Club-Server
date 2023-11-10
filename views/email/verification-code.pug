@@ -1,0 +1,10 @@
+extends email-layout
+
+block content
+  h2 Email Verification Code
+  p Hello. You are about to signup with Nile Club. This is your email verification code: #{verificationCode}. You can also click the following button to continue with your signup. 
+  p Please note that both the code and link are only valid for the next hour.
+  +button(verificationCodeURL, 'Verify email →')
+  p If you can't click the above button please visit #{verificationCodeURL}
+  br
+  p If you didn't request this email, please ignore it.
