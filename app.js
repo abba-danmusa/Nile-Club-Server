@@ -16,7 +16,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
 app.use(compression()) // compress response bodies
-
+app.use(express.json())
 // tell express to use your routes
 app.use('/authentication/', require('./routes/authentication'))
 

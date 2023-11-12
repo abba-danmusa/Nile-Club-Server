@@ -5,6 +5,14 @@ const codeRain = require('coderain')
 const User = mongoose.model('User')
 
 exports.signup = async (req, res) => {
+  const email = req.body.email
+  const userExist = await User.findOne({ email })
+  if (userExist) {
+    return res.status(409).json({
+      status: 'error',
+      message: 'User already exist. verify your email if you haven\'t already otherwise sign in'
+    })
+  }
   const user = new User(req.body)
   await user.save()
   res.status(200).json({
@@ -17,11 +25,17 @@ exports.signup = async (req, res) => {
 
 exports.signin = async (req, res) => {
   let { email, password } = req.body
-  const user = await User.findOne({ email })
+  const user = await User.findOne({email})
   if (!user) {
     return res.status(401).json({
       status: 'error',
       message: 'User with the given email does not exist! Please sign up.'
+    })
+  }
+  if (user.verificationCode) {
+    return res.status(402).json({
+      status: 'error',
+      message: 'Please verify your email. check your email for the verification code or get a new one',
     })
   }
   await user.comparePassword(password)
@@ -41,15 +55,62 @@ exports.sendVerificationCode = async (req, res, next) => {
   req.body.verificationCode = verificationCode
   req.body.verificationCodeExpires = verificationCodeExpires
   const verificationCodeURL = `https://${req.headers.host}/verification/code/${verificationCode}`
-  const user = req.body.email
+
   await mail.send({
-    user,
+    user: req.body.email,
     subject: 'Verification Code',
     verificationCodeURL,
     verificationCode,
     filename: 'verification-code'
   })
   next()
+}
+
+exports.resendVerificationCode = async (req, res) => {
+  const { verificationCode, verificationCodeExpires, email } = req.body
+  const user = await User.findOne({ email })
+  if (!user) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'No user found with the provided email. Please signup'
+    })
+  }
+  if (!(user.verificationCode && user.verificationCodeExpires)) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Email already verified. Please sign in',
+    })
+  }
+  await User.findOneAndUpdate(
+    { email },
+    { $set: { verificationCode, verificationCodeExpires } },
+    {new: true, runValidators: true}
+  )
+  res.status(200).json({
+    status: 'success',
+    message: `A new verification code has been sent to ${email}`
+  })
+}
+
+exports.verifyVerificationCode = async (req, res) => {
+  const {verificationCode} = req.body
+  const user = await User.findOne({
+    verificationCode,
+    verificationCodeExpires: { $gt: Date.now() }
+  })
+  if (!user) {
+    return res.status(401).json({
+      status: 'error',
+      message: 'Invalid or expired verification code. Please generate a new code and try again'
+    })
+  }
+  user.verificationCode = undefined //delete the v. code from user collection
+  user.verificationCodeExpires = undefined //delete v. code expiry date
+  await user.save()
+  res.status(200).json({
+    status: 'success',
+    message: 'Email Verification Successful. You can now login'
+  })
 }
 
 exports.requireAuth = async (req, res, next) => {
