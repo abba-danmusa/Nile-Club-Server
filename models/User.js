@@ -72,7 +72,7 @@ userSchema.methods.comparePassword = function(candidatePassword) {
       }
 
       if (!isMatch) {
-        return reject({status: 401, message: 'Incorrect Password'})
+        return reject({status: 400, message: 'Incorrect Password'})
       }
 
       resolve(true)
