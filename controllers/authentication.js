@@ -6,18 +6,12 @@ const User = mongoose.model('User')
 
 exports.signup = async (req, res) => {
   const email = req.body.email
-  const userExist = await User.findOne({ email })
-  if (userExist) {
-    return res.status(409).json({
-      status: 'error',
-      message: 'User already exist. verify your email if you haven\'t already otherwise sign in'
-    })
-  }
+
   const user = new User(req.body)
   await user.save()
   res.status(200).json({
     status: 'success',
-    message: `An email with a verification code has been sent to ${req.body.email}`,
+    message: `An email with a verification code has been sent to ${email}`,
     // TODO
     user // remove after testing
   })
@@ -49,6 +43,21 @@ exports.signin = async (req, res) => {
 }
 
 exports.sendVerificationCode = async (req, res, next) => {
+  const email = req.body.email
+  const userExist = await User.findOne({ email })
+
+  if (userExist && userExist.verificationCode) {
+    return res.status(409).json({
+      status: 'error',
+      message: 'You\'ve already signed up. Please verify your email to continue'
+    })
+  } else if (userExist) {
+    return res.status(408).json({
+      status: 'error',
+      message: 'User already exists. Please sign in.'
+    })
+  }
+
   const cr = new codeRain('999999') // generate a unique auth code
   const verificationCode = cr.next()
   const verificationCodeExpires = Date.now() + 1200000 // expires after an hour
@@ -66,7 +75,35 @@ exports.sendVerificationCode = async (req, res, next) => {
   next()
 }
 
-exports.resendVerificationCode = async (req, res) => {
+exports.resendVerificationCode = async (req, res, next) => {
+  const email = req.body.email
+  const userExist = await User.findOne({ email })
+
+  if (!userExist) {
+    return res.status(409).json({
+      status: 'error',
+      message: 'User does not exist. Please sign up.'
+    })
+  }
+
+  const cr = new codeRain('999999') // generate a unique auth code
+  const verificationCode = cr.next()
+  const verificationCodeExpires = Date.now() + 1200000 // expires after an hour
+  req.body.verificationCode = verificationCode
+  req.body.verificationCodeExpires = verificationCodeExpires
+  const verificationCodeURL = `https://${req.headers.host}/verification/code/${verificationCode}`
+
+  await mail.send({
+    user: req.body.email,
+    subject: 'Verification Code',
+    verificationCodeURL,
+    verificationCode,
+    filename: 'verification-code'
+  })
+  next()
+}
+
+exports.saveVerificationCode = async (req, res) => {
   const { verificationCode, verificationCodeExpires, email } = req.body
   const user = await User.findOne({ email })
   if (!user) {

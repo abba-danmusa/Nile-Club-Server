@@ -5,11 +5,9 @@ const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: 'Please provide your first name'
     },
     lastName: {
       type: String,
-      required: 'Please provide your last name'
     },
     email: {
       type: String,
@@ -18,15 +16,12 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: 'Please provide your password'
     },
     department: {
       type: String,
-      required: 'Please provide your department'
     },
     year: {
       type: String,
-      required: 'Please provide your graduation year'
     },
     verificationCode: {
       type: Number,

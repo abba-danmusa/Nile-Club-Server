@@ -11,8 +11,8 @@ router.post(
 
 router.post(
   '/resend',
-  catchErrors(authentication.sendVerificationCode),
-  catchErrors(authentication.resendVerificationCode)
+  catchErrors(authentication.resendVerificationCode),
+  catchErrors(authentication.saveVerificationCode),
 )
 
 router.post('/signin', catchErrors(authentication.signin))
