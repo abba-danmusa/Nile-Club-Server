@@ -16,6 +16,8 @@ router.post(
 )
 
 router.post('/signin', catchErrors(authentication.signin))
+router.post('/password/create', catchErrors(authentication.createPassword))
 router.post('/verification', catchErrors(authentication.verifyVerificationCode))
+router.post('/about', catchErrors(authentication.about))
 
 module.exports = router
