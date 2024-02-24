@@ -3,26 +3,18 @@ const bcrypt = require('bcrypt')
 
 const userSchema = new mongoose.Schema(
   {
-    firstName: {
-      type: String,
-    },
-    lastName: {
-      type: String,
-    },
+    firstName: String,
+    lastName: String,
     email: {
       type: String,
       required: 'Please provide your school email',
       unique: 'Email already in use'
     },
-    password: {
-      type: String,
-    },
-    department: {
-      type: String,
-    },
-    year: {
-      type: String,
-    },
+    password: String,
+    faculty: String,
+    department: String,
+    year: String,
+    matriculationNumber: String,
     verificationCode: {
       type: Number,
       unique: 'Please try signing up again'
@@ -63,7 +55,7 @@ userSchema.methods.comparePassword = function(candidatePassword) {
   return new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, user.password, (err, isMatch) => {
       if (err) {
-        return reject(err)
+        return reject({status: 401, message: 'You have to create a password'})
       }
 
       if (!isMatch) {

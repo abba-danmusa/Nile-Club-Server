@@ -51,6 +51,11 @@ exports.sendVerificationCode = async (req, res, next) => {
       status: 'error',
       message: 'You\'ve already signed up. Please verify your email to continue'
     })
+  } else if (userExist && !userExist.password) {
+    return res.status(403).json({
+      status: 'error',           
+      message: 'You need to create a password before you can continue'
+    })
   } else if (userExist) {
     return res.status(408).json({
       status: 'error',
@@ -172,5 +177,54 @@ exports.requireAuth = async (req, res, next) => {
     const user = await User.findById(userId)
     req.user = user
     next()
+  })
+}
+
+exports.createPassword = async (req, res) => {
+  const { email, password } = req.body
+  const user = await User.findOne({email})
+  if (!user) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Please provide a valid email address'
+    })
+  }
+  user.password = password
+  await user.save()
+  res.status(200).json({
+    status:'success',
+    message: 'Password successfully created'
+  })
+}
+
+exports.about = async (req, res) => {
+  const {
+    email,
+    firstName,
+    lastName,
+    faculty,
+    department,
+    year,
+    matriculationNumber
+  } = req.body
+
+  await User.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        firstName,
+        lastName,
+        faculty,
+        department,
+        year,
+        matriculationNumber
+      }
+    },
+    { new: true, runValidators: true }
+  )
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Profile successfully updated'
   })
 }
