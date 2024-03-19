@@ -17,8 +17,10 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
 app.use(compression()) // compress response bodies
 app.use(express.json())
-// tell express to use your routes
+
+// tell express to use our routes
 app.use('/authentication/', require('./routes/authentication'))
+app.use('/club/', require('./routes/club'))
 
 // if the above routes didn't work, 404 them and forward to error handlers
 app.use(errorHandlers.notFound)
