@@ -25,6 +25,11 @@ const clubSchema = new mongoose.Schema(
     assets: {
       banner: { url: String, secure_url: String, signature: String },
       image: { url: String, secure_url: String, signature: String }
+    },
+    approval: {
+      type: String,
+      default: 'pending',
+      enum: ['pending', 'approved', 'disapproved']
     }
   },
   { timestamps: true },

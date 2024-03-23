@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema(
   {
     firstName: String,
     lastName: String,
+    admin: Boolean,
     email: {
       type: String,
       required: 'Please provide your school email',
