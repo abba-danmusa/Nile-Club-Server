@@ -21,6 +21,8 @@ app.use(express.json())
 // tell express to use our routes
 app.use('/authentication/', require('./routes/authentication'))
 app.use('/club/', require('./routes/club'))
+app.use('/event/', require('./routes/event'))
+app.use('/feed/', require('./routes/feed'))
 
 // if the above routes didn't work, 404 them and forward to error handlers
 app.use(errorHandlers.notFound)
