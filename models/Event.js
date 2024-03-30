@@ -40,7 +40,6 @@ const eventSchema = new mongoose.Schema(
     club: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Club',
-      required: 'Please provide a club'
     },
     creator: {
       type: mongoose.Schema.Types.ObjectId,

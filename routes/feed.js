@@ -16,6 +16,6 @@ const { getFeeds } = require("../controllers/feeds")
 
 router.use("/", catchErrors(requireAuthentication))
 
-router.post("/", catchErrors(getFeeds))
+router.get("/", catchErrors(getFeeds))
 
 module.exports = router

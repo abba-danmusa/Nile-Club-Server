@@ -12,7 +12,7 @@ const Event = mongoose.model('Event')
  */
 exports.createEvent = async (req, res) => {
   req.body.creator = req.user._id
-  req.body.club = req.user._id
+  req.body.club = req.user.club
   const category = req.body.category
   req.body.category = undefined
   
