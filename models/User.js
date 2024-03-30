@@ -68,4 +68,8 @@ userSchema.methods.comparePassword = function(candidatePassword) {
   })
 }
 
+// userSchema.virtual('club', {
+  
+// })
+
 mongoose.model('User', userSchema)
