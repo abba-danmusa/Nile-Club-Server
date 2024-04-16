@@ -72,6 +72,7 @@ const eventSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
+    category: [categorySchema],
     assets: [assetsSchema]
   },
   { timestamps: true },
