@@ -13,10 +13,8 @@ const Event = mongoose.model('Event')
 exports.createEvent = async (req, res) => {
   req.body.creator = req.user._id
   req.body.club = req.user.club
-  const category = req.body.category
-  req.body.category = undefined
   
-  const event = new Event({...req.body, category: category.map(item => item)})
+  const event = new Event(req.body)
   await event.save()
 
   res.status(200).json({
