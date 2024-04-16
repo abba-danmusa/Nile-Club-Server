@@ -12,6 +12,7 @@ exports.getFeeds = async (req, res) => {
         as: 'club'
       }
     },
+    { $sort: { createdAt: -1 } }
   ])
 
   res.status(200).json({

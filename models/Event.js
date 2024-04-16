@@ -1,11 +1,24 @@
 const mongoose = require('mongoose')
             
 const categorySchema = new mongoose.Schema({title: String})
-const imagesSchema = new mongoose.Schema(
+const assetsSchema = new mongoose.Schema(
   {
     url: String,
     secure_url: String,
-    signature: String
+    signature: String,
+    public_id: String,
+    resource_type: String,
+    type: String,
+    format: String,
+    version: Number,
+    width: Number,
+    height: Number,
+    bytes: Number,
+    duration: Number,
+    created_at: Date,
+    access_mode: String,
+    id: String,
+    folder_id: String
   }
 )
 
@@ -13,7 +26,20 @@ const videosSchema = new mongoose.Schema(
   {
     url: String,
     secure_url: String,
-    signature: String
+    signature: String,
+    public_id: String,
+    resource_type: String,
+    type: String,
+    format: String,
+    version: Number,
+    width: Number,
+    height: Number,
+    bytes: Number,
+    duration: Number,
+    created_at: Date,
+    access_mode: String,
+    id: String,
+    folder_id: String
   }
 )
 
@@ -46,10 +72,7 @@ const eventSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
-    assets: {
-      images: [imagesSchema],
-      videos: [videosSchema]
-    }
+    assets: [assetsSchema]
   },
   { timestamps: true },
   {
