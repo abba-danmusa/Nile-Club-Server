@@ -20,7 +20,11 @@ const userSchema = new mongoose.Schema(
       type: Number,
       unique: 'Please try signing up again'
     },
-    verificationCodeExpires: Date
+    verificationCodeExpires: Date,
+    club: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Club'
+    }
   },
   { timestamps: true },
   {

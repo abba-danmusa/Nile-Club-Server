@@ -10,6 +10,10 @@ exports.createClub = async(req, res) => {
   const club = new Club({ name, description, assets, user: req.user._id })
   await club.save()
 
+  // save the newly created club in the user doc
+  req.user.club = club._id
+  await req.user.save()
+
   // responding to the user the status of their request. And if there is an error, our error handler will catch it and respond accordingly
   res.status(200).json({
     status:'success',
