@@ -12,6 +12,9 @@ exports.getFeeds = async (req, res) => {
         as: 'club'
       }
     },
+    {
+      $unwind: '$club'
+    },
     { $sort: { createdAt: -1 } }
   ])
 
