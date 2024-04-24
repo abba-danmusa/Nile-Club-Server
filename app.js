@@ -6,6 +6,7 @@ const cors = require('cors')
 const compression = require('compression')
 const { createServer } = require("http")
 const { Server } = require("socket.io")
+const mongoose = require('mongoose')
 
 const app = express()
 
@@ -23,6 +24,7 @@ app.use('/authentication/', require('./routes/authentication'))
 app.use('/club/', require('./routes/club'))
 app.use('/event/', require('./routes/event'))
 app.use('/feed/', require('./routes/feed'))
+app.use('/chat/', require('./routes/chat'))
 
 // if the above routes didn't work, 404 them and forward to error handlers
 app.use(errorHandlers.notFound)
@@ -44,9 +46,19 @@ const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
     origin: "*"
-  }
+  },
+  connectionStateRecovery: {}
 })
 
 // import socket.io controllers
+const handleConnection = require('./socket.io/handleConnections')
+const requireAuthentication = require('./socket.io/requireAuth')
+
+const onConnection = socket => {
+  handleConnection(io, socket)
+}
+
+io.use(requireAuthentication)
+io.on('connection', onConnection)
 
 module.exports = httpServer

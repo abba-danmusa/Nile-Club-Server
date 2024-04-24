@@ -20,7 +20,10 @@ mongoose.connection.once('open', () => {
 // import all models
 require('./models/User')
 require('./models/Club')
+require('./models/Chat')
 require('./models/Event')
+require('./models/Follow')
+require('./models/View')
 
 // start the app
 const app = require('./app')
