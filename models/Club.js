@@ -22,6 +22,14 @@ const clubSchema = new mongoose.Schema(
       min: 50,
       max: 1000
     },
+    executives: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Executive'
+    },
+    followers: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Follow'
+    },
     assets: {
       banner: { url: String, secure_url: String, signature: String },
       image: { url: String, secure_url: String, signature: String }

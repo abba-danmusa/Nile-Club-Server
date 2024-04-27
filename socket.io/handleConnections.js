@@ -17,7 +17,6 @@ module.exports = (io, socket) => {
       console.log(rooms)
       // Add the user to the room(s)
       socket.join(rooms)
-      // io.to(socket.user.club).emit('incoming chat', {greetings: 'hello'})
       console.log(`${user.firstName} has joined room ${rooms}`)
     } catch (error) {
       console.log(error)
@@ -29,7 +28,7 @@ module.exports = (io, socket) => {
     let message
     try {
       message = new Chat({ ...chat, room, sender: socket.user._id })
-      io.to(message.room.toString()).emit('incoming chat', message)
+      socket.broadcast.to(message.room.toString()).emit('incoming chat', message)
       await message.save()
     } catch (error) {
       // TODO
