@@ -32,6 +32,15 @@ exports.signin = async (req, res) => {
       message: 'Please verify your email. check your email for the verification code or get a new one',
     })
   }
+  
+  const userFirstName = user.firstName
+  if (!userFirstName) {
+    return res.status(405).json({
+      status: 'error',
+      message: 'Please, we\'d love to know more about you. enter your email to continue'
+    })
+  }
+
   await user.comparePassword(password)
   const token = jwt.sign({ userId: user._id }, process.env.SECRET)
   res.status(200).json({
@@ -55,6 +64,11 @@ exports.sendVerificationCode = async (req, res, next) => {
     return res.status(403).json({
       status: 'error',           
       message: 'You need to create a password before you can continue'
+    })
+  } else if (userExist && !userExist.firstName) {
+    return res.status(405).json({
+      status: 'error',
+      message: 'Please, we\'d love to know more about you. Let\'s start from here'
     })
   } else if (userExist) {
     return res.status(408).json({

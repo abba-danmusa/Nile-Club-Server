@@ -25,12 +25,11 @@ exports.createClub = async (req, res) => {
   })
   // Follow your club
   const follower = new Follow({ club: club?._id, user: req.user._id })
-
-  await Promise.all([executive, follower])
-
   // save the newly created club in the user doc
   req.user.club = club._id
-  await req.user.save()
+
+  // save them all to the database
+  await Promise.all([executive.save(), follower.save(), req.user.save()])
 
   // responding to the user the status of their request. And if there is an error, our error handler will catch it and respond accordingly
   res.status(200).json({
@@ -88,6 +87,29 @@ exports.getClub = async (req, res) => {
         ],
         as: 'featuredClubs',
       }
+    },
+    {
+      $lookup: {
+        from: 'follows',
+        let: {
+          userId: new ObjectId(req.user._id),
+          clubId: new ObjectId(clubId)
+        },
+        pipeline: [
+          {
+            $match: {
+              $and: [
+                { $expr: { $eq: ['$user', '$$userId'] } },
+                { $expr: { $eq: ['$club', '$$clubId'] } }
+              ]
+            }
+          },
+        ],
+        as: 'member',
+      }
+    },
+    {
+      $unwind: { path: '$member', preserveNullAndEmptyArrays: true }
     },
     {
       $lookup: {
