@@ -37,7 +37,8 @@ exports.createClub = async (req, res) => {
   res.status(200).json({
     status:'success',
     message: 'Your application has been sent successfully and is now awaiting approval',
-    club
+    club,
+    user: req.user
   })
 }
 

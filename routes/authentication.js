@@ -20,4 +20,11 @@ router.post('/password/create', catchErrors(authentication.createPassword))
 router.post('/verification', catchErrors(authentication.verifyVerificationCode))
 router.post('/about', catchErrors(authentication.about))
 
+// GET ROUTES
+router.get(
+  '/user',
+  catchErrors(authentication.requireAuth),
+  catchErrors(authentication.getUser)
+)
+
 module.exports = router

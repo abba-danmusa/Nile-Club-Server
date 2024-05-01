@@ -242,3 +242,11 @@ exports.about = async (req, res) => {
     message: 'Profile successfully updated'
   })
 }
+
+exports.getUser = async (req, res) => {
+  const user = await User.findById(req.user._id)
+  res.status(200).json({
+    status:'success',
+    user
+  })
+}
