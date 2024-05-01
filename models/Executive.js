@@ -12,7 +12,8 @@ const executivesSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      required: 'Please provide a role for the executive'
+      required: 'Please provide a role for the executive',
+      trim: true
     }
   },
   { timestamps: true },

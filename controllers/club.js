@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const cloudinary = require('../helpers/cloudinary')
+const router = require('../routes/club')
 
 const ObjectId = require('mongodb').ObjectId
 
@@ -242,6 +243,84 @@ exports.newsAndAnnouncement = async (req, res) => {
     status: 'success',
     message: 'News and Announcements retrieved successfully',
     feeds
+  })
+}
+
+exports.getMembers = async (req, res) => {
+  const clubId = req.body.clubId
+
+  const members = await Follow.aggregate([
+    { $match: { club: new ObjectId(req.user.club) } }, // Match followers of the specified club
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'user'
+      }
+    }, // Populate the user field
+    { $unwind: '$user' }, // Unwind the user array
+    {
+      $lookup: {
+        from: 'executives',
+        let: { userId: '$user._id', clubId: '$club' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$user', '$$userId'] },
+                  { $eq: ['$club', '$$clubId'] },
+                ]
+              }
+            }
+          }
+        ],
+        as: 'role'
+      }
+    }, // Lookup the role in the executives collection
+    {
+      $unwind: { path: '$role', preserveNullAndEmptyArrays: true }
+    }, // Unwind the role array
+    {
+      $addFields: {
+        'user.role': '$role.role' // Add the role field to the user object
+      }
+    },
+    {
+      $project: {
+        'role': 0 // Exclude the role field from the output
+      }
+    }
+  ])
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Members retrieved successfully',
+    members
+  })
+}
+
+exports.assignRole = async (req, res) => {
+  let executive = await Executive.findOneAndUpdate(
+    { user: req.body.userId, club: req.user.club },
+    { role: req.body.role },
+    { runValidators: true, new: true }
+  ).exec()
+
+  if (!executive) {
+    executive = new Executive({
+      user: req.body.userId,
+      club: req.user.club,
+      role: req.body.role
+    })
+    await executive.save()
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Role assigned successfully',
+    executive
   })
 }
 
