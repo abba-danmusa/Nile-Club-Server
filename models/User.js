@@ -24,19 +24,29 @@ const assetsSchema = new mongoose.Schema(
 
 const userSchema = new mongoose.Schema(
   {
-    firstName: String,
-    lastName: String,
+    firstName: {
+      type: String,
+      trim: true
+    },
+    lastName: {
+      type: String,
+      trim: true
+    },
     admin: Boolean,
     email: {
       type: String,
       required: 'Please provide your school email',
-      unique: 'Email already in use'
+      unique: 'Email already in use',
+      trim: true
     },
     password: String,
     faculty: String,
     department: String,
     year: String,
-    matriculationNumber: String,
+    matriculationNumber: {
+      type: String,
+      trim: true
+    },
     verificationCode: {
       type: Number,
       unique: 'Please try signing up again'

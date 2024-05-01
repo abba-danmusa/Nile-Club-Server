@@ -24,6 +24,7 @@ require('./models/Chat')
 require('./models/Event')
 require('./models/Follow')
 require('./models/View')
+require('./models/Comment')
 require('./models/Executive')
 
 // start the app

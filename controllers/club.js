@@ -6,6 +6,7 @@ const ObjectId = require('mongodb').ObjectId
 const Club = mongoose.model('Club')
 const Event = mongoose.model('Event')
 const Follow = mongoose.model('Follow')
+const Comment = mongoose.model('Comment')
 const Executive = mongoose.model('Executive')
 
 exports.createClub = async (req, res) => {
@@ -36,6 +37,18 @@ exports.createClub = async (req, res) => {
     status:'success',
     message: 'Your application has been sent successfully and is now awaiting approval',
     club
+  })
+}
+
+exports.followingClub = async (req, res) => {
+  const following = await Follow.findOne({
+    user: req.user._id,
+    club: req.query.clubId
+  })
+  res.status(200).json({
+    status:'success',
+    message: 'following',
+    following
   })
 }
 
@@ -161,6 +174,42 @@ exports.getClub = async (req, res) => {
     status: 'success',
     message: 'Club retrieved successfully',
     club
+  })
+}
+
+exports.createComment = async (req, res) => {
+  const comment = new Comment({ user: req.user._id, ...req.body })
+  await comment.save()
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Comment created successfully',
+    comment
+  })
+}
+
+exports.getComments = async (req, res) => {
+  const comments = await Comment.aggregate([
+    {
+      $match: {
+        club: new ObjectId(req.query.clubId)
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'user'
+      }
+    },
+    { $unwind: '$user' }
+  ])
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Comments retrieved successfully',
+    comments
   })
 }
 
