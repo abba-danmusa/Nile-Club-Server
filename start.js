@@ -21,9 +21,10 @@ mongoose.connection.once('open', () => {
 require('./models/User')
 require('./models/Club')
 require('./models/Chat')
+require('./models/View')
+require('./models/Like')
 require('./models/Event')
 require('./models/Follow')
-require('./models/View')
 require('./models/Comment')
 require('./models/Executive')
 

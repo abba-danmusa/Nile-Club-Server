@@ -1,6 +1,9 @@
 const mongoose = require('mongoose')
 
 const Event = mongoose.model('Event')
+const Like = mongoose.model('Like')
+
+const ObjectId = require('mongodb').ObjectId
 
 /**
  * Creates a new event.
@@ -23,3 +26,26 @@ exports.createEvent = async (req, res) => {
     event,
   });
 };
+
+exports.addToSetLike = async (req, res) => {
+  const eventId = req.body.eventId
+
+  let unlike
+  let like
+
+  unlike = await Like.findOneAndDelete({
+    event: new ObjectId(eventId),
+    user: new ObjectId(req.user._id)
+  })
+
+  if (!unlike) {
+    like = new Like({ event: eventId, user: req.user._id })
+    await like.save()
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: `Success`,
+    like
+  })
+}

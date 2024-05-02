@@ -73,7 +73,11 @@ const eventSchema = new mongoose.Schema(
       required: true
     },
     category: [categorySchema],
-    assets: [assetsSchema]
+    assets: [assetsSchema],
+    likes: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Like'
+    }
   },
   { timestamps: true },
   {
