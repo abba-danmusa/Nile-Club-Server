@@ -7,6 +7,7 @@ const ObjectId = require('mongodb').ObjectId
 const Club = mongoose.model('Club')
 const Event = mongoose.model('Event')
 const Follow = mongoose.model('Follow')
+const Review = mongoose.model('Review')
 const Comment = mongoose.model('Comment')
 const Executive = mongoose.model('Executive')
 
@@ -83,7 +84,6 @@ exports.followClub = async (req, res) => {
 exports.getClub = async (req, res) => {
   
   const clubId = req.query.clubId
-
   const [club] = await Club.aggregate([
     { $match: { _id: new ObjectId(clubId) } },
     {
@@ -107,24 +107,34 @@ exports.getClub = async (req, res) => {
       $lookup: {
         from: 'follows',
         let: {
-          userId: new ObjectId(req.user._id),
-          clubId: new ObjectId(clubId)
+          clubId: new ObjectId(clubId),
+          userId: new ObjectId(req.user._id)
         },
         pipeline: [
           {
             $match: {
-              $and: [
-                { $expr: { $eq: ['$user', '$$userId'] } },
-                { $expr: { $eq: ['$club', '$$clubId'] } }
-              ]
+              $expr: {
+                $and: [
+                  { $eq: ['$club', '$$clubId'] },
+                  { $eq: ['$user', '$$userId'] } // doesn't work? userId
+                ]
+              }
             }
           },
+          { $limit: 1 }
         ],
-        as: 'member',
+        as: 'follows'
       }
     },
     {
-      $unwind: { path: '$member', preserveNullAndEmptyArrays: true }
+      $addFields: {
+        follows: {
+          $cond: {
+            if: { $gt: [{ $size: '$follows' }, 0] },
+            then: true, else: false
+          }
+        }
+      }
     },
     {
       $lookup: {
@@ -170,6 +180,35 @@ exports.getClub = async (req, res) => {
         as: 'executives'
       }
     },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'club',
+        as: 'reviews'
+      }
+    },
+    // Unwind the reviews array
+    { $unwind: { path: '$reviews', preserveNullAndEmptyArrays: true } },
+    // Group reviews by club ID and calculate the average review score
+    {
+      $group: {
+        _id: '$_id',
+        ratings: { $avg: '$reviews.review' }, // Calculate the average review score
+        numberOfReviews: { $sum: 1},
+        club: { $first: '$$ROOT' }, // Include the entire club document
+        // reviews: { $push: '$reviews' }, // Add the reviews array to the group
+      }
+    },
+    {
+      $replaceRoot: { newRoot: { $mergeObjects: ['$club', '$$ROOT'] } }
+    },
+    {
+      $project: {
+        club: 0,
+      },
+
+    }
   ])
 
   res.status(200).json({
@@ -322,6 +361,26 @@ exports.assignRole = async (req, res) => {
     status: 'success',
     message: 'Role assigned successfully',
     executive
+  })
+}
+
+exports.review = async (req, res) => {
+  const { clubId: club, review: rating } = req.body
+  const user = req.user._id
+  const hasReview = await Review.findOne({user: new ObjectId(req.user._id)})
+  if (hasReview) {
+    return res.status(402).json({
+      status: 'error',
+      message: 'Sorry, you can only rate a club once',
+      review: hasReview
+    })
+  }
+  const review = new Review({ user, club, review: rating })
+  await review.save()
+  res.status(200).json({
+    status: 'success',
+    message: 'Thanks for the rate!',
+    review
   })
 }
 

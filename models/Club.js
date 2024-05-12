@@ -30,6 +30,10 @@ const clubSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Follow'
     },
+    reviews: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Review'
+    },
     assets: {
       banner: { url: String, secure_url: String, signature: String },
       image: { url: String, secure_url: String, signature: String }

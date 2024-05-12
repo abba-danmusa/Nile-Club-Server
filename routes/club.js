@@ -11,6 +11,7 @@ router.use('/', catchErrors(requireAuthentication))
 // POST ROUTES
 // all our post routes (/club) sits here up to where get routes starts
 router.post('/', catchErrors(club.createClub))
+router.post('/review', catchErrors(club.review))
 router.post('/role', catchErrors(club.assignRole))
 router.post('/follow', catchErrors(club.followClub))
 router.post('/comment', catchErrors(club.createComment))

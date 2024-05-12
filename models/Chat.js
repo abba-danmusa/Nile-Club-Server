@@ -12,6 +12,10 @@ const chatSchema = new mongoose.Schema(
       ref: 'User',
       required: 'Please provide a user'
     },
+    viewedBy: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
     id: Number,
     client_offset: String,
     content: String,
