@@ -27,7 +27,9 @@ module.exports = (io, socket) => {
     console.log(chat)
     let message
     try {
-      message = new Chat({ ...chat, room, sender: socket.user._id })
+      message = new Chat({
+        ...chat, room, sender: socket.user._id, viewedBy: [socket.user._id]
+      })
       socket.broadcast.to(message.room.toString()).emit('incoming chat', message)
       await message.save()
     } catch (error) {
@@ -65,7 +67,21 @@ module.exports = (io, socket) => {
     io.to(socket.user.club).emit('chats', chats)
   }
 
+  const markMessagesRead = async (chatIds) => {
+    const user = socket.user
+    if (!chatIds) return
+    try {
+      await Chat.updateMany(
+        { _id: { $in: [...chatIds] } },
+        { $addToSet: { viewedBy: user._id } }
+      )
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   socket.on('join room', joinRoom)
   socket.on('incoming chat', chatMessage)
   socket.on('room', getChats)
+  socket.on('mark messages read', markMessagesRead)
 }
