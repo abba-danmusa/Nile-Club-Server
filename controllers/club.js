@@ -457,6 +457,29 @@ exports.review = async (req, res) => {
   })
 }
 
+exports.getClubs = async (req, res) => {
+  
+  const clubs = await Club.aggregate([
+    {
+      $match: { approval: 'pending' }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: user
+      }
+    }
+  ])
+
+  res.status(200).json({
+    status: 'success',
+    message: 'retrieved successfully',
+    clubs
+  })
+}
+
 exports.cloudinarySignature = async (req, res) => {
   const timestamp = Math.round((new Date).getTime() / 1000)
 

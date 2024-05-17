@@ -20,6 +20,7 @@ router.post('/comment', catchErrors(club.createComment))
 // all our get routes (/club) sits here
 router.get('/', catchErrors(club.getClub))
 router.get('/member', catchErrors(club.getMembers))
+router.get('/approval', catchErrors(club.getClubs))
 router.get('/comment', catchErrors(club.getComments))
 router.get('/follow', catchErrors(club.followingClub))
 router.get('/feature', catchErrors(club.featuredClubs))
