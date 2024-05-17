@@ -14,7 +14,6 @@ module.exports = (io, socket) => {
       let rooms = await Follow.find({ user: new ObjectId(user._id) })
       rooms = rooms.map(room => room.club.toString())
       // rooms.push(socket.user._id.toString()) 
-      console.log(rooms)
       // Add the user to the room(s)
       socket.join(rooms)
       console.log(`${user.firstName} has joined room ${rooms}`)
@@ -24,13 +23,16 @@ module.exports = (io, socket) => {
   }
 
   const chatMessage = async (chat, room) => {
-    console.log(chat)
     let message
     try {
       message = new Chat({
         ...chat, room, sender: socket.user._id, viewedBy: [socket.user._id]
       })
-      socket.broadcast.to(message.room.toString()).emit('incoming chat', message)
+
+      message.sender = socket.user
+      const chatGroup = message.room.toString()
+      socket.broadcast.to(chatGroup).emit('incoming chat', message)
+      message.sender = socket.user._id
       await message.save()
     } catch (error) {
       // TODO

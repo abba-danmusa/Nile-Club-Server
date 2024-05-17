@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema(
     faculty: String,
     department: String,
     year: String,
+    admin: Boolean,
     matriculationNumber: {
       type: String,
       trim: true
