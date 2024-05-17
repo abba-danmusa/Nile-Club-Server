@@ -468,9 +468,10 @@ exports.getClubs = async (req, res) => {
         from: 'users',
         localField: 'user',
         foreignField: '_id',
-        as: user
+        as: 'user'
       }
-    }
+    },
+    {$unwind: '$user'}
   ])
 
   res.status(200).json({
