@@ -16,7 +16,14 @@ const event = require("../controllers/event")
 
 router.use("/", catchErrors(requireAuthentication))
 
+// POST routes
 router.post("/", catchErrors(event.createEvent))
 router.post('/like', catchErrors(event.addToSetLike))
+
+// PUT routes
+router.put('/', catchErrors(event.updateEvent))
+
+// GET routes
+router.get('/', catchErrors(event.getEvents))
 
 module.exports = router

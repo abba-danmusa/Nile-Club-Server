@@ -481,6 +481,20 @@ exports.getClubs = async (req, res) => {
   })
 }
 
+exports.approveClub = async (req, res) => {
+  const clubId = req.body.clubId
+  await Club.findOneAndUpdate(
+    { _id: new ObjectId(clubId) },
+    { approval: 'approved' },
+    { new: true, runValidators: true }
+  )
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Approved successfully',
+  })
+}
+
 exports.cloudinarySignature = async (req, res) => {
   const timestamp = Math.round((new Date).getTime() / 1000)
 

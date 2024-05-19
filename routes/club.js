@@ -14,6 +14,7 @@ router.post('/', catchErrors(club.createClub))
 router.post('/review', catchErrors(club.review))
 router.post('/role', catchErrors(club.assignRole))
 router.post('/follow', catchErrors(club.followClub))
+router.post('/approval', catchErrors(club.approveClub))
 router.post('/comment', catchErrors(club.createComment))
 
 // GET ROUTES
