@@ -258,7 +258,7 @@ exports.featuredClubs = async (req, res) => {
   
   const featuredClubs = await Club.aggregate([
     {
-      $match: {}
+      $match: {approval: 'approved'}
     },
   ])
 
