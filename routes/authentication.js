@@ -15,10 +15,17 @@ router.post(
   catchErrors(authentication.saveVerificationCode),
 )
 
+router.post('/about', catchErrors(authentication.about))
 router.post('/signin', catchErrors(authentication.signin))
 router.post('/password/create', catchErrors(authentication.createPassword))
 router.post('/verification', catchErrors(authentication.verifyVerificationCode))
-router.post('/about', catchErrors(authentication.about))
+
+// PUT routes
+router.put('/about', authentication.editAbout)
+router.put('/password',
+  catchErrors(authentication.requireAuth),
+  catchErrors(authentication.changePassword)
+)
 
 // GET ROUTES
 router.get(

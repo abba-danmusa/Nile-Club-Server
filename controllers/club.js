@@ -43,6 +43,22 @@ exports.createClub = async (req, res) => {
   })
 }
 
+exports.editClub = async (req, res) => {
+  const { _id, ...updatedFields } = req.body
+  
+  const club = await Club.findOneAndUpdate(
+    { _id: new ObjectId(_id) },
+    { ...updatedFields },
+    { runValidators: true, new: true }
+  ).exec()
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Club updated successfully',
+    club
+  })
+}
+
 exports.followingClub = async (req, res) => {
   const following = await Follow.findOne({
     user: req.user._id,
@@ -356,11 +372,78 @@ exports.newsAndAnnouncement = async (req, res) => {
   })
 }
 
+exports.getMembership = async (req, res) => {
+  const userId = req.user._id
+  const membership = await Follow.aggregate([
+    {
+      $match: {
+        user: new ObjectId(userId)
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'user',
+      }
+    },
+    { $unwind: '$user' },
+    {
+      $lookup: {
+        from: 'clubs',
+        localField: 'club',
+        foreignField: '_id',
+        as: 'club'
+      }
+    },
+    { $unwind: '$club' },
+    {
+      $lookup: {
+        from: 'executives',
+        let: { userId: '$user._id', clubId: '$club._id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$user', '$$userId'] },
+                  { $eq: ['$club', '$$clubId'] }
+                ]
+              }
+            }
+          }
+        ],
+        as: 'role'
+      }
+    },
+    {
+      $unwind: {
+        path: '$role',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $addFields: {
+        'user.role': '$role.role'
+      }
+    },
+    { $sort: { createdAt: -1 } }
+  ])
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Club membership retrieved successfully',
+    membership
+  })
+}
+
 exports.getMembers = async (req, res) => {
-  const clubId = req.query.clubId
-  console.log(clubId)
+  const clubId = req.query.clubId !== 'undefined' ? req.query.clubId : req.user.club;
+  const searchQuery = req.query.search || ''; // Get the search query from the request query parameter
+  console.log(searchQuery)
   const members = await Follow.aggregate([
-    { $match: { club: new ObjectId( clubId || req.user.club) } }, // Match followers of the specified club
+    { $match: { club: new ObjectId(clubId) } }, // Match followers of the specified club
     {
       $lookup: {
         from: 'users',
@@ -370,6 +453,15 @@ exports.getMembers = async (req, res) => {
       }
     }, // Populate the user field
     { $unwind: '$user' }, // Unwind the user array
+    {
+      $match: {
+        // Match user's first name or last name with the search query (case-insensitive)
+        $or: [
+          { 'user.firstName': { $regex: searchQuery, $options: 'i' } },
+          { 'user.lastName': { $regex: searchQuery, $options: 'i' } }
+        ]
+      }
+    }, // Filter users based on the search query
     {
       $lookup: {
         from: 'executives',
@@ -390,7 +482,10 @@ exports.getMembers = async (req, res) => {
       }
     }, // Lookup the role in the executives collection
     {
-      $unwind: { path: '$role', preserveNullAndEmptyArrays: true }
+      $unwind: {
+        path: '$role',
+        preserveNullAndEmptyArrays: true
+      }
     }, // Unwind the role array
     {
       $addFields: {
@@ -398,17 +493,18 @@ exports.getMembers = async (req, res) => {
       }
     },
     {
-      $project: {
-        'role': 0 // Exclude the role field from the output
+      $group: {
+        _id: '$user._id',
+        user: { $first: '$user' }
       }
     }
-  ])
-  
+  ]);
+
   res.status(200).json({
     status: 'success',
     message: 'Members retrieved successfully',
     members
-  })
+  });
 }
 
 exports.assignRole = async (req, res) => {

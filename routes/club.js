@@ -17,6 +17,9 @@ router.post('/follow', catchErrors(club.followClub))
 router.post('/approval', catchErrors(club.approveClub))
 router.post('/comment', catchErrors(club.createComment))
 
+// PUT ROUTES
+router.put('/', catchErrors(club.editClub))
+
 // GET ROUTES
 // all our get routes (/club) sits here
 router.get('/', catchErrors(club.getClub))
@@ -25,6 +28,7 @@ router.get('/approval', catchErrors(club.getClubs))
 router.get('/comment', catchErrors(club.getComments))
 router.get('/follow', catchErrors(club.followingClub))
 router.get('/feature', catchErrors(club.featuredClubs))
+router.get('/membership', catchErrors(club.getMembership))
 router.get('/feed', catchErrors(club.newsAndAnnouncement))
 router.get('/cloudinary/signature', catchErrors(club.cloudinarySignature))
 

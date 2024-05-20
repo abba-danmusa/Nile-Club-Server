@@ -211,6 +211,21 @@ exports.createPassword = async (req, res) => {
   })
 }
 
+exports.changePassword = async (req, res) => {
+  const { password, newPassword } = req.body
+  const user = await User.findById(req.user._id)
+
+  await user.comparePassword(password)
+  user.password = newPassword
+  await user.save()
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Password changed successfully',
+    user: req.user
+  })
+}
+
 exports.about = async (req, res) => {
   const {
     email,
@@ -243,10 +258,25 @@ exports.about = async (req, res) => {
   })
 }
 
+exports.editAbout = async (req, res) => {
+  const { _id, ...updatedProfile } = req.body
+  const user = await User.findOneAndUpdate(
+    { _id },
+    { ...updatedProfile },
+    { new: true, runValidators: true }
+  )
+  res.status(200).json({
+    status: 'success',
+    message: 'Profile updated successfully',
+    user
+  })
+}
+
 exports.getUser = async (req, res) => {
   const user = await User.findById(req.user._id)
   res.status(200).json({
-    status:'success',
+    status: 'success',
+    message: 'User retrieved successfully',
     user
   })
 }

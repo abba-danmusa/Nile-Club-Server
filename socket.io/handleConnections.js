@@ -11,7 +11,7 @@ module.exports = (io, socket) => {
     try {
       const user = socket.user
 
-      let rooms = await Follow.find({ user: new ObjectId(user._id) })
+      let rooms = await Follow.find({ user: new ObjectId(user?._id) })
       rooms = rooms.map(room => room.club.toString())
       // rooms.push(socket.user._id.toString()) 
       // Add the user to the room(s)
