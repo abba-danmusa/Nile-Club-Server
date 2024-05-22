@@ -72,6 +72,10 @@ const eventSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
+    physical: Boolean,
+    virtual: Boolean,
+    venue: String,
+    link: String,
     category: [categorySchema],
     assets: [assetsSchema],
     likes: {

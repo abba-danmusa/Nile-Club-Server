@@ -14,9 +14,20 @@ const ObjectId = require('mongodb').ObjectId
  * @returns {Promise}
  */
 exports.createEvent = async (req, res) => {
+  const clubIsApproved = await Club.findOne({
+    _id: new ObjectId(req.user.club),
+    approval: 'approved'
+  })
+
+  if (!clubIsApproved) {
+    return res.status(200).json({
+      status: 'success',
+      message: 'You cannot create an event until your club is approved',
+    })
+  }
+
   req.body.creator = req.user._id
   req.body.club = req.user.club
-  
   const event = new Event(req.body)
   await event.save()
 

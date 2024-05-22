@@ -5,46 +5,6 @@ const ObjectId = require('mongodb').ObjectId
 const Event = mongoose.model('Event')
 
 exports.getFeeds = async (req, res) => {
-  // const feeds = await Event.aggregate([
-  //   {
-  //     $lookup: {
-  //       from: 'clubs',
-  //       let: { userId: new ObjectId(req.user._id), clubId: '$club' },
-  //       pipeline: [
-  //         { $match: { $expr: ['$_id', '$$clubId'] } },
-  //         {
-  //           $lookup: {
-  //             from: 'follows',
-  //             pipeline: [
-  //               {
-  //                 $match: {
-  //                   $and: [
-  //                     { $expr: { $eq: ['$club', '$$clubId'] } },
-  //                     { $expr: { $eq: ['$user', '$$userId'] } },
-  //                   ]
-  //                 }
-  //               }
-  //             ],
-  //             as: 'follows'
-  //           },
-  //         },
-  //         {
-  //           $unwind: {
-  //             path: '$follows',
-  //             preserveNullAndEmptyArrays: true
-  //           }
-  //         }
-  //       ],
-  //       as: 'club'
-  //     }
-  //   },
-  //   {
-  //     $unwind: '$club'
-  //   },
-  //   { $sort: { createdAt: -1 } }
-  // ])
-
-  // Assuming userId is the ID of the current user
   
   const userId = req.user._id;
 
@@ -164,7 +124,8 @@ exports.getFeeds = async (req, res) => {
       $addFields: {
         totalLikes: { $size: '$likes' }
       }
-    }
+    },
+    { $sort: { createdAt: -1 } }
   ])
 
   res.status(200).json({
@@ -172,4 +133,8 @@ exports.getFeeds = async (req, res) => {
     message: 'feeds retrieved successfully',
     feeds
   })
+}
+
+exports.discover = async (req, res) => {
+  const discover = await Clubs
 }
