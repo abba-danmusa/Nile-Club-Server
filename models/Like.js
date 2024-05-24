@@ -5,7 +5,10 @@ const likeSchema = new mongoose.Schema(
     event: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Event',
-      required: 'Please provide an event'
+    },
+    post: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Post',
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,

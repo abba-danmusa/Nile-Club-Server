@@ -25,6 +25,7 @@ app.use('/club/', require('./routes/club'))
 app.use('/event/', require('./routes/event'))
 app.use('/feed/', require('./routes/feed'))
 app.use('/chat/', require('./routes/chat'))
+app.use('/post/', require('./routes/post'))
 
 // if the above routes didn't work, 404 them and forward to error handlers
 app.use(errorHandlers.notFound)
