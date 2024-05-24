@@ -83,7 +83,7 @@ exports.followClub = async (req, res) => {
   if (following) {
     return res.status(200).json({
       status: 'success',
-      message: 'Un followed',
+      message: 'Stop following',
       following
     })
   }
