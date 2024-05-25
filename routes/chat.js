@@ -7,5 +7,6 @@ const { requireAuthentication } = require('../authentication/authentication')
 router.use("/", catchErrors(requireAuthentication))
 
 router.get('/', catchErrors(chat.getChats))
+router.get('/notification', catchErrors(chat.getNotifications))
 
 module.exports = router

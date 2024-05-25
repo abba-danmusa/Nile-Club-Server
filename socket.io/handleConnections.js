@@ -71,11 +71,12 @@ module.exports = (io, socket) => {
 
   const markMessagesRead = async (chatIds) => {
     const user = socket.user
-    if (!chatIds) return
+    if (!chatIds.length === 0) return
+    const ids = chatIds.map(chat => chat._id)
     try {
       await Chat.updateMany(
-        { _id: { $in: [...chatIds] } },
-        { $addToSet: { viewedBy: user._id } }
+        { _id: { $in: [...ids] } },
+        { $addToSet: { viewedBy: user._id } },
       )
     } catch (error) {
       console.log(error)

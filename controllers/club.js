@@ -112,6 +112,14 @@ exports.getClub = async (req, res) => {
     },
     {
       $lookup: {
+        from: 'posts',
+        localField: '_id',
+        foreignField: 'club',
+        as: 'posts',
+      }
+    },
+    {
+      $lookup: {
         from: 'clubs',
         pipeline: [
           { $match: {} }
@@ -274,8 +282,37 @@ exports.featuredClubs = async (req, res) => {
   
   const featuredClubs = await Club.aggregate([
     {
-      $match: {approval: 'approved'}
+      $match: { approval: 'approved' }
     },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'club',
+        as: 'reviews'
+      }
+    },
+    // Unwind the reviews array
+    { $unwind: { path: '$reviews', preserveNullAndEmptyArrays: true } },
+    // Group reviews by club ID and calculate the average review score
+    {
+      $group: {
+        _id: '$_id',
+        ratings: { $avg: '$reviews.review' }, // Calculate the average review score
+        numberOfReviews: { $sum: 1 },
+        club: { $first: '$$ROOT' }, // Include the entire club document
+        // reviews: { $push: '$reviews' }, // Add the reviews array to the group
+      }
+    },
+    {
+      $replaceRoot: { newRoot: { $mergeObjects: ['$club', '$$ROOT'] } }
+    },
+    {
+      $project: {
+        club: 0,
+      },
+
+    }
   ])
 
   res.status(200).json({
