@@ -49,7 +49,7 @@ exports.updatePost = async (req, res) => {
 }
 
 exports.addToSetLike = async (req, res) => {
-  const postId = req.body.eventId
+  const postId = req.body.postId
 
   let unlike
   let like
