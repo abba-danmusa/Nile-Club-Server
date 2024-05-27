@@ -17,7 +17,7 @@ const event = require("../controllers/event")
 router.use("/", catchErrors(requireAuthentication))
 
 // POST routes
-router.post("/", catchErrors(event.createEvent))
+router.post("/", event.createEvent)
 router.post('/like', catchErrors(event.addToSetLike))
 
 // PUT routes
