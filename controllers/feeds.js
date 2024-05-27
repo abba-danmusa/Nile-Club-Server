@@ -3,10 +3,11 @@ const mongoose = require('mongoose')
 const ObjectId = require('mongodb').ObjectId
 
 const Event = mongoose.model('Event')
+const Club = mongoose.model('Club')
 
 exports.getFeeds = async (req, res) => {
   
-  const userId = req.user._id;
+  const userId = req.user._id
 
   // Aggregation pipeline for events
   const eventsPipeline = [
@@ -285,5 +286,50 @@ exports.getFeeds = async (req, res) => {
 }
 
 exports.discover = async (req, res) => {
-  const discover = await Clubs
+  
+  const searchText = req.query.search || '' // Get the search text from the query parameter
+
+  const discover = await Club.aggregate([
+    {
+      $match: {
+        approval: 'approved',
+        ...(searchText ? { $text: { $search: searchText } } : {})
+      }
+    },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: '_id',
+        foreignField: 'club',
+        as: 'reviews'
+      }
+    },
+    // Unwind the reviews array
+    { $unwind: { path: '$reviews', preserveNullAndEmptyArrays: true } },
+    // Group reviews by club ID and calculate the average review score
+    {
+      $group: {
+        _id: '$_id',
+        ratings: { $avg: '$reviews.review' }, // Calculate the average review score
+        numberOfReviews: { $sum: 1 },
+        club: { $first: '$$ROOT' }, // Include the entire club document
+        // reviews: { $push: '$reviews' }, // Add the reviews array to the group
+      }
+    },
+    {
+      $replaceRoot: { newRoot: { $mergeObjects: ['$club', '$$ROOT'] } }
+    },
+    {
+      $project: {
+        club: 0,
+      },
+
+    }
+  ])
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Discover feed',
+    discover
+  })
 }

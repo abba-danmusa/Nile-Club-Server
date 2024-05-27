@@ -28,7 +28,8 @@ const postSchema = new mongoose.Schema(
     content: {
       type: String,
       trim: true,
-      required: 'Please input some content'
+      required: 'Please input some content',
+      text: true
     },
     club: {
       type: mongoose.Schema.Types.ObjectId,
@@ -52,5 +53,7 @@ const postSchema = new mongoose.Schema(
     toObject: { virtuals: true }
   }
 )
+
+postSchema.index({ content: 'text' })
 
 mongoose.model('Post', postSchema)

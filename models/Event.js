@@ -47,9 +47,15 @@ const eventSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true
+      trim: true,
+      required: true,
+      text: true
     },
-    description: String,
+    description: {
+      type: String,
+      trim: true,
+      text: true
+    },
     category: mongoose.Schema.Types.Array,
     date: {
       type: Date,
@@ -89,5 +95,7 @@ const eventSchema = new mongoose.Schema(
     toObject: { virtuals: true }
   }
 )
+
+eventSchema.index({ title: 'text', description: 'text' })
 
 mongoose.model('Event', eventSchema)

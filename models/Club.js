@@ -13,14 +13,16 @@ const clubSchema = new mongoose.Schema(
       trim: true,
       unique: 'A club with this name already exists',
       min: 3,
-      max: 200
+      max: 200,
+      text: true
     },
     description: {
       type: String,
       required: 'Please provide a description for the club you want to create',
       trim: true,
       min: 50,
-      max: 1000
+      max: 1000,
+      text: true
     },
     executives: {
       type: mongoose.Schema.Types.ObjectId,
@@ -50,5 +52,7 @@ const clubSchema = new mongoose.Schema(
     toObject: { virtuals: true }
   }
 )
+
+clubSchema.index({ name: 'text', description: 'text' })
 
 mongoose.model('Club', clubSchema)

@@ -10,12 +10,13 @@ const router = express.Router()
 
 const { requireAuthentication } = require("../authentication/authentication")
 const { catchErrors } = require("../handlers/errorHandlers")
-const { getFeeds } = require("../controllers/feeds")
+const { getFeeds, discover } = require("../controllers/feeds")
 
 // base = '/feed/'
 
 router.use("/", catchErrors(requireAuthentication))
 
 router.get("/", catchErrors(getFeeds))
+router.get('/discover', catchErrors(discover))
 
 module.exports = router
