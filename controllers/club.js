@@ -630,228 +630,123 @@ exports.approveClub = async (req, res) => {
 
 exports.clubAnalytics = async (req, res) => {
 
-  // const clubId = new ObjectId(req.user.club)
-
-  // const [analytics] = await Club.aggregate([
-  //   {
-  //     $match: { _id: clubId }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "follows",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "members"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "posts",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "posts"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "events",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "events"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "likes",
-  //       let: { clubId: "$_id", posts: "$posts", events: "$events" },
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             $or: [
-  //               { post: { $exists: true } },
-  //               { event: { $exists: true } }
-  //             ],
-  //             $expr: {
-  //               $or: [
-  //                 { $in: ["$post", "$$posts._id"] },
-  //                 { $in: ["$event", "$$events._id"] }
-  //               ]
-  //             }
-  //           }
-  //         }
-  //       ],
-  //       as: "likes"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "reviews",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "reviews",
-  //       pipeline: [
-  //         { $sort: { createdAt: -1 } },
-  //         { $limit: 15 },
-  //         { $project: { review: 1, _id: 0 } }
-  //       ]
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "follows",
-  //       let: { clubId: "$_id" },
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             club: "$$clubId"
-  //           }
-  //         },
-  //         {
-  //           $group: {
-  //             _id: {
-  //               year: { $year: "$createdAt" },
-  //               month: { $month: "$createdAt" }
-  //             },
-  //             count: { $sum: 1 }
-  //           }
-  //         },
-  //         { $sort: { "_id.year": -1, "_id.month": -1 } },
-  //         { $limit: 5 }
-  //       ],
-  //       as: "newMembersPerMonth"
-  //     }
-  //   },
-  //   {
-  //     $project: {
-  //       _id: 1,
-  //       totalMembers: { $size: "$members" },
-  //       totalPosts: { $size: "$posts" },
-  //       totalEvents: { $size: "$events" },
-  //       totalLikes: { $size: "$likes" },
-  //       last15Reviews: "$reviews.review",
-  //       newMembersPerMonth: 1
-  //     }
-  //   }
-  // ])
-
   const clubId = new ObjectId(req.user.club)
 
-const [analytics] = await Club.aggregate([
-  {
-    $match: { _id: clubId }
-  },
-  {
-    $lookup: {
-      from: "follows",
-      localField: "_id",
-      foreignField: "club",
-      as: "members"
-    }
-  },
-  {
-    $lookup: {
-      from: "posts",
-      localField: "_id",
-      foreignField: "club",
-      as: "posts"
-    }
-  },
-  {
-    $lookup: {
-      from: "events",
-      localField: "_id",
-      foreignField: "club",
-      as: "events"
-    }
-  },
-  {
-    $lookup: {
-      from: "likes",
-      let: { clubId: "$_id", posts: "$posts", events: "$events" },
-      pipeline: [
-        {
-          $match: {
-            $or: [
-              { post: { $exists: true } },
-              { event: { $exists: true } }
-            ],
-            $expr: {
+  const [analytics] = await Club.aggregate([
+    {
+      $match: { _id: clubId }
+    },
+    {
+      $lookup: {
+        from: "follows",
+        localField: "_id",
+        foreignField: "club",
+        as: "members"
+      }
+    },
+    {
+      $lookup: {
+        from: "posts",
+        localField: "_id",
+        foreignField: "club",
+        as: "posts"
+      }
+    },
+    {
+      $lookup: {
+        from: "events",
+        localField: "_id",
+        foreignField: "club",
+        as: "events"
+      }
+    },
+    {
+      $lookup: {
+        from: "likes",
+        let: { clubId: "$_id", posts: "$posts", events: "$events" },
+        pipeline: [
+          {
+            $match: {
               $or: [
-                { $in: ["$post", "$$posts._id"] },
-                { $in: ["$event", "$$events._id"] }
-              ]
+                { post: { $exists: true } },
+                { event: { $exists: true } }
+              ],
+              $expr: {
+                $or: [
+                  { $in: ["$post", "$$posts._id"] },
+                  { $in: ["$event", "$$events._id"] }
+                ]
+              }
             }
           }
-        }
-      ],
-      as: "likes"
-    }
-  },
-  {
-    $lookup: {
-      from: "reviews",
-      localField: "_id",
-      foreignField: "club",
-      as: "reviews",
-      pipeline: [
-        { $sort: { createdAt: -1 } },
-        { $limit: 15 },
-        { $project: { review: 1, _id: 0 } }
-      ]
-    }
-  },
-  {
-    $lookup: {
-      from: "follows",
-      localField: "_id",
-      foreignField: "club",
-      as: "newMembersPerMonth"
-    }
-  },
-  {
-    $unwind: "$newMembersPerMonth"
-  },
-  {
-    $group: {
-      _id: "$_id",
-      totalMembers: { $sum: 1 },
-      totalPosts: { $addToSet: "$posts" },
-      totalEvents: { $addToSet: "$events" },
-      totalLikes: { $addToSet: "$likes" },
-      last15Reviews: { $first: "$reviews.review" },
-      newMembersPerMonth: {
-        $push: {
-          month: {
-            $dateToString: {
-              format: "%Y-%m",
-              date: "$newMembersPerMonth.createdAt"
-            }
-          },
-          count: 1
-        }
+        ],
+        as: "likes"
       }
-    }
-  },
-  {
-    $project: {
-      _id: 1,
-      totalMembers: 1,
-      totalPosts: { $size: "$totalPosts" },
-      totalEvents: { $size: "$totalEvents" },
-      totalLikes: { $size: "$totalLikes" },
-      last15Reviews: 1,
-      newMembersPerMonth: {
-        $slice: [
-          {
-            $reverseArray: "$newMembersPerMonth"
-          },
-          5
+    },
+    {
+      $lookup: {
+        from: "reviews",
+        localField: "_id",
+        foreignField: "club",
+        as: "reviews",
+        pipeline: [
+          { $sort: { createdAt: -1 } },
+          { $limit: 15 },
+          { $project: { review: 1, _id: 0 } }
         ]
       }
+    },
+    {
+      $lookup: {
+        from: "follows",
+        localField: "_id",
+        foreignField: "club",
+        as: "newMembersPerMonth"
+      }
+    },
+    {
+      $unwind: "$newMembersPerMonth"
+    },
+    {
+      $group: {
+        _id: "$_id",
+        totalMembers: { $sum: 1 },
+        totalPosts: { $addToSet: "$posts" },
+        totalEvents: { $addToSet: "$events" },
+        totalLikes: { $addToSet: "$likes" },
+        last15Reviews: { $first: "$reviews.review" },
+        newMembersPerMonth: {
+          $push: {
+            month: {
+              $dateToString: {
+                format: "%Y-%m",
+                date: "$newMembersPerMonth.createdAt"
+              }
+            },
+            count: 1
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        totalMembers: 1,
+        totalPosts: { $size: "$totalPosts" },
+        totalEvents: { $size: "$totalEvents" },
+        totalLikes: { $size: "$totalLikes" },
+        last15Reviews: 1,
+        newMembersPerMonth: {
+          $slice: [
+            {
+              $reverseArray: "$newMembersPerMonth"
+            },
+            5
+          ]
+        }
+      }
     }
-  }
-])
-
+  ])
 
   res.status(200).json({
     status: 'success',
