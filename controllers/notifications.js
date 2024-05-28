@@ -15,7 +15,7 @@ exports.getNotifications = async (req, res) => {
         from: 'events',
         localField: 'content',
         foreignField: '_id',
-        as: 'events'
+        as: 'event'
       }
     },
     {
@@ -23,9 +23,11 @@ exports.getNotifications = async (req, res) => {
         from: 'posts',
         localField: 'content',
         foreignField: '_id',
-        as: 'posts'
+        as: 'post'
       }
     },
+    { $unwind: { path: '$event', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$post', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: 'clubs',
