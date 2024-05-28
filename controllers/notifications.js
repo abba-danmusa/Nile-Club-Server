@@ -7,9 +7,9 @@ const Notification = mongoose.model('Notification')
 exports.getNotifications = async (req, res) => {
   
   const userId = new ObjectId(req.user._id)
-
+  console.log(userId)
   const notifications = await Notification.aggregate([
-    { $match: { user: userId } },
+    // { $match: { user: userId } },
     {
       $lookup: {
         from: 'events',
@@ -25,7 +25,16 @@ exports.getNotifications = async (req, res) => {
         foreignField: '_id',
         as: 'posts'
       }
-    }
+    },
+    {
+      $lookup: {
+        from: 'clubs',
+        localField: 'club',
+        foreignField: '_id',
+        as: 'club'
+      }
+    },
+    { $unwind: '$club'}
   ])
 
   res.status(200).json({
