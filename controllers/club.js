@@ -284,6 +284,41 @@ exports.getComments = async (req, res) => {
 
 exports.featuredClubs = async (req, res) => {
   
+  // const featuredClubs = await Club.aggregate([
+  //   {
+  //     $match: { approval: 'approved' }
+  //   },
+  //   {
+  //     $lookup: {
+  //       from: 'reviews',
+  //       localField: '_id',
+  //       foreignField: 'club',
+  //       as: 'reviews'
+  //     }
+  //   },
+  //   // Unwind the reviews array
+  //   { $unwind: { path: '$reviews', preserveNullAndEmptyArrays: true } },
+  //   // Group reviews by club ID and calculate the average review score
+  //   {
+  //     $group: {
+  //       _id: '$_id',
+  //       ratings: { $avg: '$reviews.review' }, // Calculate the average review score
+  //       numberOfReviews: { $sum: 1 },
+  //       club: { $first: '$$ROOT' }, // Include the entire club document
+  //       // reviews: { $push: '$reviews' }, // Add the reviews array to the group
+  //     }
+  //   },
+  //   {
+  //     $replaceRoot: { newRoot: { $mergeObjects: ['$club', '$$ROOT'] } }
+  //   },
+  //   {
+  //     $project: {
+  //       club: 0,
+  //     },
+
+  //   }
+  // ])
+  
   const featuredClubs = await Club.aggregate([
     {
       $match: { approval: 'approved' }
@@ -305,7 +340,6 @@ exports.featuredClubs = async (req, res) => {
         ratings: { $avg: '$reviews.review' }, // Calculate the average review score
         numberOfReviews: { $sum: 1 },
         club: { $first: '$$ROOT' }, // Include the entire club document
-        // reviews: { $push: '$reviews' }, // Add the reviews array to the group
       }
     },
     {
@@ -315,7 +349,10 @@ exports.featuredClubs = async (req, res) => {
       $project: {
         club: 0,
       },
-
+    },
+    // Sort the results based on the ratings in descending order
+    {
+      $sort: { ratings: -1 }
     }
   ])
 
@@ -327,84 +364,6 @@ exports.featuredClubs = async (req, res) => {
 }
 
 exports.newsAndAnnouncement = async (req, res) => {
-  // const feeds = await Event.aggregate([
-  //   {
-  //     $match: {
-  //       $expr: { $eq: ['$club', new ObjectId(req.query.clubId)] }
-  //     },
-  //   },
-  //   // Add a field like: true if the user likes the event
-  //   {
-  //     $lookup: {
-  //       from: 'likes',
-  //       let: { eventId: '$_id', userId: new ObjectId(req.user._id) },
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             $expr: {
-  //               $and: [
-  //                 { $eq: ['$event', '$$eventId'] },
-  //                 { $eq: ['$user', '$$userId'] }
-  //               ]
-  //             }
-  //           }
-  //         },
-  //         { $limit: 1 }
-  //       ],
-  //       as: 'like'
-  //     }
-  //   },
-  //   {
-  //     $addFields: {
-  //       like: {
-  //         $cond: {
-  //           if: { $gt: [{ $size: '$like' }, 0] },
-  //           then: true, else: false
-  //         }
-  //       }
-  //     }
-  //   },
-  //   // Lookup the first 5 users who liked each event
-  //   {
-  //     $lookup: {
-  //       from: 'likes',
-  //       let: { eventId: '$_id' },
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             $expr: { $eq: ['$event', '$$eventId'] }
-  //           }
-  //         },
-  //         { $limit: 5 }, // Limit to the first 5 likes
-  //         {
-  //           $lookup: {
-  //             from: 'users',
-  //             localField: 'user',
-  //             foreignField: '_id',
-  //             as: 'user'
-  //           }
-  //         },
-  //         { $unwind: '$user' },
-  //         {
-  //           $project: {
-  //             _id: '$user._id',
-  //             firstName: '$user.firstName',
-  //             lastName: '$user.lastName',
-  //             asset: '$user.asset'
-  //           }
-  //         }
-  //       ],
-  //       as: 'likes'
-  //     }
-  //   },
-  //   // Add a field to count the total number of likes for each event
-  //   {
-  //     $addFields: {
-  //       totalLikes: { $size: '$likes' }
-  //     }
-  //   },
-  //   { $sort: { createdAt: -1 } }
-  // ])
 
   const clubId = new ObjectId(req.query.clubId)
   const userId = new ObjectId(req.user._id)
