@@ -82,7 +82,8 @@ exports.followClub = async (req, res) => {
 
   if (following) {
     await Executive.findOneAndDelete({
-      _id: new Object(req.user._id)
+      club: new ObjectId(clubId),
+      user: req.user._id
     })
     return res.status(200).json({
       status: 'success',
