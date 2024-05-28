@@ -9,13 +9,13 @@ exports.getNotifications = async (req, res) => {
   const userId = new ObjectId(req.user._id)
   console.log(userId)
   const notifications = await Notification.aggregate([
-    { $match: { user: userId } },
+    // { $match: {user: userId } },
     {
       $lookup: {
         from: 'events',
         localField: 'content',
         foreignField: '_id',
-        as: 'event'
+        as: 'events'
       }
     },
     {
@@ -23,11 +23,11 @@ exports.getNotifications = async (req, res) => {
         from: 'posts',
         localField: 'content',
         foreignField: '_id',
-        as: 'post'
+        as: 'posts'
       }
     },
-    { $unwind: { path: '$event', preserveNullAndEmptyArrays: true } },
-    { $unwind: { path: '$post', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$events', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$posts', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: 'clubs',
