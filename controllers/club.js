@@ -888,122 +888,6 @@ exports.clubAnalytics = async (req, res) => {
 
   const clubId = new ObjectId(req.user.club)
 
-  // const [analytics] = await Club.aggregate([
-  //   {
-  //     $match: { _id: clubId }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "follows",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "members"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "posts",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "posts"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "events",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "events"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "likes",
-  //       let: { clubId: "$_id", posts: "$posts", events: "$events" },
-  //       pipeline: [
-  //         {
-  //           $match: {
-  //             $or: [
-  //               { post: { $exists: true } },
-  //               { event: { $exists: true } }
-  //             ],
-  //             $expr: {
-  //               $or: [
-  //                 { $in: ["$post", "$$posts._id"] },
-  //                 { $in: ["$event", "$$events._id"] }
-  //               ]
-  //             }
-  //           }
-  //         }
-  //       ],
-  //       as: "likes"
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "reviews",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "reviews",
-  //       pipeline: [
-  //         { $sort: { createdAt: -1 } },
-  //         { $limit: 15 },
-  //         { $project: { review: 1, _id: 0 } }
-  //       ]
-  //     }
-  //   },
-  //   {
-  //     $lookup: {
-  //       from: "follows",
-  //       localField: "_id",
-  //       foreignField: "club",
-  //       as: "newMembersPerMonth"
-  //     }
-  //   },
-  //   {
-  //     $unwind: "$newMembersPerMonth"
-  //   },
-  //   {
-  //     $group: {
-  //       _id: "$_id",
-  //       totalMembers: { $sum: 1 },
-  //       totalPosts: { $first: "$posts" },
-  //       totalEvents: { $first: "$events" },
-  //       totalLikes: { $first: "$likes" },
-  //       last15Reviews: { $first: "$reviews.review" },
-  //       newMembersPerMonth: {
-  //         $push: {
-  //           month: {
-  //             $dateToString: {
-  //               format: "%Y-%m",
-  //               date: "$newMembersPerMonth.createdAt"
-  //             }
-  //           },
-  //           count: 1
-  //         }
-  //       }
-  //     }
-  //   },
-  //   {
-  //     $project: {
-  //       _id: 1,
-  //       totalMembers: 1,
-  //       totalPosts: { $size: "$totalPosts" },
-  //       totalEvents: { $size: "$totalEvents" },
-  //       totalLikes: { $size: "$totalLikes" },
-  //       last15Reviews: 1,
-  //       newMembersPerMonth: {
-  //         $slice: [
-  //           {
-  //             $reverseArray: "$newMembersPerMonth"
-  //           },
-  //           5
-  //         ]
-  //       }
-  //     }
-  //   }
-  // ])
-
   const [analytics] = await Club.aggregate([
   {
     $match: { _id: clubId }
@@ -1073,30 +957,20 @@ exports.clubAnalytics = async (req, res) => {
   },
   {
     $group: {
-      _id: {
-        clubId: "$_id",
-        month: {
-          $dateToString: {
-            format: "%Y-%m",
-            date: "$members.createdAt"
-          }
-        }
-      },
-      count: { $sum: 1 }
-    }
-  },
-  {
-    $group: {
-      _id: "$_id.clubId",
-      totalMembers: { $sum: "$count" },
+      _id: "$_id",
+      totalMembers: { $sum: 1 },
       totalPosts: { $first: "$posts" },
       totalEvents: { $first: "$events" },
       totalLikes: { $first: "$likes" },
       last15Reviews: { $first: "$reviews.review" },
       newMembersPerMonth: {
         $push: {
-          month: "$_id.month",
-          count: "$count"
+          month: {
+            $dateToString: {
+              format: "%Y-%m",
+              date: "$members.createdAt"
+            }
+          }
         }
       }
     }
@@ -1109,6 +983,36 @@ exports.clubAnalytics = async (req, res) => {
       totalEvents: { $size: "$totalEvents" },
       totalLikes: { $size: "$totalLikes" },
       last15Reviews: 1,
+      newMembersPerMonth: 1
+    }
+  },
+  {
+    $unwind: "$newMembersPerMonth"
+  },
+  {
+    $group: {
+      _id: "$_id",
+      totalMembers: { $first: "$totalMembers" },
+      totalPosts: { $first: "$totalPosts" },
+      totalEvents: { $first: "$totalEvents" },
+      totalLikes: { $first: "$totalLikes" },
+      last15Reviews: { $first: "$last15Reviews" },
+      newMembersPerMonth: {
+        $push: {
+          month: "$newMembersPerMonth",
+          count: { $sum: 1 }
+        }
+      }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      totalMembers: 1,
+      totalPosts: 1,
+      totalEvents: 1,
+      totalLikes: 1,
+      last15Reviews: 1,
       newMembersPerMonth: {
         $slice: [
           {
@@ -1119,13 +1023,88 @@ exports.clubAnalytics = async (req, res) => {
       }
     }
   }
-]);
+  ])
+
+  const [members] = await Club.aggregate([
+    {
+      $match: { _id: clubId }
+    },
+    {
+      $lookup: {
+        from: "follows",
+        localField: "_id",
+        foreignField: "club",
+        as: "members"
+      }
+    },
+    {
+      $unwind: "$members"
+    },
+    {
+      $group: {
+        _id: "$_id",
+        newMembersPerMonth: {
+          $push: {
+            month: {
+              $dateToString: {
+                format: "%Y-%m",
+                date: "$members.createdAt"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        newMembersPerMonth: 1
+      }
+    },
+    {
+      $unwind: "$newMembersPerMonth"
+    },
+    {
+      $group: {
+        _id: {
+          clubId: "$_id",
+          month: "$newMembersPerMonth.month"
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $group: {
+        _id: "$_id.clubId",
+        newMembersPerMonth: {
+          $push: {
+            month: "$_id.month",
+            count: "$count"
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        newMembersPerMonth: {
+          $slice: [
+            {
+              $reverseArray: "$newMembersPerMonth"
+            },
+            5
+          ]
+        }
+      }
+    }
+  ])
 
 
   res.status(200).json({
     status: 'success',
     message: 'Retrieved successfully',
-    analytics
+    analytics,
+    newMembersPerMonth: members.newMembersPerMonth
   })
 }
 
