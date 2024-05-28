@@ -323,24 +323,110 @@ exports.featuredClubs = async (req, res) => {
 }
 
 exports.newsAndAnnouncement = async (req, res) => {
-  const feeds = await Event.aggregate([
+  // const feeds = await Event.aggregate([
+  //   {
+  //     $match: {
+  //       $expr: { $eq: ['$club', new ObjectId(req.query.clubId)] }
+  //     },
+  //   },
+  //   // Add a field like: true if the user likes the event
+  //   {
+  //     $lookup: {
+  //       from: 'likes',
+  //       let: { eventId: '$_id', userId: new ObjectId(req.user._id) },
+  //       pipeline: [
+  //         {
+  //           $match: {
+  //             $expr: {
+  //               $and: [
+  //                 { $eq: ['$event', '$$eventId'] },
+  //                 { $eq: ['$user', '$$userId'] }
+  //               ]
+  //             }
+  //           }
+  //         },
+  //         { $limit: 1 }
+  //       ],
+  //       as: 'like'
+  //     }
+  //   },
+  //   {
+  //     $addFields: {
+  //       like: {
+  //         $cond: {
+  //           if: { $gt: [{ $size: '$like' }, 0] },
+  //           then: true, else: false
+  //         }
+  //       }
+  //     }
+  //   },
+  //   // Lookup the first 5 users who liked each event
+  //   {
+  //     $lookup: {
+  //       from: 'likes',
+  //       let: { eventId: '$_id' },
+  //       pipeline: [
+  //         {
+  //           $match: {
+  //             $expr: { $eq: ['$event', '$$eventId'] }
+  //           }
+  //         },
+  //         { $limit: 5 }, // Limit to the first 5 likes
+  //         {
+  //           $lookup: {
+  //             from: 'users',
+  //             localField: 'user',
+  //             foreignField: '_id',
+  //             as: 'user'
+  //           }
+  //         },
+  //         { $unwind: '$user' },
+  //         {
+  //           $project: {
+  //             _id: '$user._id',
+  //             firstName: '$user.firstName',
+  //             lastName: '$user.lastName',
+  //             asset: '$user.asset'
+  //           }
+  //         }
+  //       ],
+  //       as: 'likes'
+  //     }
+  //   },
+  //   // Add a field to count the total number of likes for each event
+  //   {
+  //     $addFields: {
+  //       totalLikes: { $size: '$likes' }
+  //     }
+  //   },
+  //   { $sort: { createdAt: -1 } }
+  // ])
+
+  const clubId = new ObjectId(req.query.clubId)
+  const userId = new ObjectId(req.user._id)
+
+  const eventsPipeline = [
+    { $match: { club: clubId } },
     {
-      $match: {
-        $expr: { $eq: ['$club', new ObjectId(req.query.clubId)] }
-      },
+      $lookup: {
+        from: 'clubs',
+        localField: 'club',
+        foreignField: '_id',
+        as: 'club'
+      }
     },
-    // Add a field like: true if the user likes the event
+    { $unwind: '$club' },
     {
       $lookup: {
         from: 'likes',
-        let: { eventId: '$_id', userId: new ObjectId(req.user._id) },
+        let: { eventId: '$_id' },
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
                   { $eq: ['$event', '$$eventId'] },
-                  { $eq: ['$user', '$$userId'] }
+                  { $eq: ['$user', userId] }
                 ]
               }
             }
@@ -355,12 +441,43 @@ exports.newsAndAnnouncement = async (req, res) => {
         like: {
           $cond: {
             if: { $gt: [{ $size: '$like' }, 0] },
-            then: true, else: false
+            then: true,
+            else: false
           }
         }
       }
     },
-    // Lookup the first 5 users who liked each event
+    {
+      $lookup: {
+        from: 'follows',
+        let: { clubId: '$club._id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$club', '$$clubId'] },
+                  { $eq: ['$user', userId] }
+                ]
+              }
+            }
+          },
+          { $limit: 1 }
+        ],
+        as: 'follow'
+      }
+    },
+    {
+      $addFields: {
+        follow: {
+          $cond: {
+            if: { $gt: [{ $size: '$follow' }, 0] },
+            then: true,
+            else: false
+          }
+        }
+      }
+    },
     {
       $lookup: {
         from: 'likes',
@@ -371,7 +488,7 @@ exports.newsAndAnnouncement = async (req, res) => {
               $expr: { $eq: ['$event', '$$eventId'] }
             }
           },
-          { $limit: 5 }, // Limit to the first 5 likes
+          { $limit: 5 },
           {
             $lookup: {
               from: 'users',
@@ -393,13 +510,148 @@ exports.newsAndAnnouncement = async (req, res) => {
         as: 'likes'
       }
     },
-    // Add a field to count the total number of likes for each event
     {
       $addFields: {
         totalLikes: { $size: '$likes' }
       }
     },
+    {
+      $addFields: {
+        itemType: 'event'
+      }
+    }
+  ];
+
+  const postsPipeline = [
+    { $match: { club: clubId } },
+    {
+      $lookup: {
+        from: 'clubs',
+        localField: 'club',
+        foreignField: '_id',
+        as: 'club'
+      }
+    },
+    { $unwind: '$club' },
+    {
+      $lookup: {
+        from: 'likes',
+        let: { postId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$post', '$$postId'] },
+                  { $eq: ['$user', userId] }
+                ]
+              }
+            }
+          },
+          { $limit: 1 }
+        ],
+        as: 'like'
+      }
+    },
+    {
+      $addFields: {
+        like: {
+          $cond: {
+            if: { $gt: [{ $size: '$like' }, 0] },
+            then: true,
+            else: false
+          }
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: 'follows',
+        let: { clubId: '$club._id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$club', '$$clubId'] },
+                  { $eq: ['$user', userId] }
+                ]
+              }
+            }
+          },
+          { $limit: 1 }
+        ],
+        as: 'follow'
+      }
+    },
+    {
+      $addFields: {
+        follow: {
+          $cond: {
+            if: { $gt: [{ $size: '$follow' }, 0] },
+            then: true,
+            else: false
+          }
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: 'likes',
+        let: { postId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$post', '$$postId'] }
+            }
+          },
+          { $limit: 5 },
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'user',
+              foreignField: '_id',
+              as: 'user'
+            }
+          },
+          { $unwind: '$user' },
+          {
+            $project: {
+              _id: '$user._id',
+              firstName: '$user.firstName',
+              lastName: '$user.lastName',
+              asset: '$user.asset'
+            }
+          }
+        ],
+        as: 'likes'
+      }
+    },
+    {
+      $addFields: {
+        totalLikes: { $size: '$likes' }
+      }
+    },
+    {
+      $addFields: {
+        itemType: 'post'
+      }
+    }
+  ];
+
+  const combinedPipeline = [
+    {
+      $unionWith: {
+        coll: 'posts',
+        pipeline: postsPipeline
+      }
+    },
     { $sort: { createdAt: -1 } }
+  ]
+
+  const feeds = await Event.aggregate([
+    ...eventsPipeline,
+    ...combinedPipeline
   ])
 
   res.status(200).json({
@@ -711,9 +963,9 @@ exports.clubAnalytics = async (req, res) => {
       $group: {
         _id: "$_id",
         totalMembers: { $sum: 1 },
-        totalPosts: { $first: "$posts" },
-        totalEvents: { $first: "$events" },
-        totalLikes: { $first: "$likes" },
+        totalPosts: { $addToSet: "$posts" },
+        totalEvents: { $addToSet: "$events" },
+        totalLikes: { $addToSet: "$likes" },
         last15Reviews: { $first: "$reviews.review" },
         newMembersPerMonth: {
           $push: {
