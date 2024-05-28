@@ -29,6 +29,7 @@ require('./models/Review')
 require('./models/Follow')
 require('./models/Comment')
 require('./models/Executive')
+require('./models/Notification')
 
 // start the app
 const app = require('./app')

@@ -5,10 +5,15 @@ const ObjectId = require('mongodb').ObjectId
 const Post = mongoose.model('Post')
 const Like = mongoose.model('Like')
 const Club = mongoose.model('Club')
+const Follow = mongoose.model('Follow')
+const Notification = mongoose.model('Notification')
 
 exports.createPost = async (req, res) => {
+  
+  const clubId = new ObjectId(req.user.club)
+
   const clubIsApproved = await Club.findOne({
-    _id: new ObjectId(req.user.club),
+    _id: clubId,
     approval: 'approved'
   })
 
@@ -23,12 +28,33 @@ exports.createPost = async (req, res) => {
   req.body.creator = req.user._id
 
   const post = new Post(req.body)
-  await post.save()
+
+  const followers = await Follow.find(
+    { club: clubId, user: { $ne: req.user._id } },
+    { _id: 1 }
+  )
+  
+  const bulkOps = followers.map(follower => ({
+    insertOne: {
+      document: {
+        user: follower._id,
+        club: req.user.club,
+        type: 'Post',
+        content: post._id,
+        isRead: false,
+      }
+    }
+  }))
+
+  const postPromise = post.save()
+  const notificationsPromise = Notification.bulkWrite(bulkOps)
+
+  const [newPost] = await Promise.all([postPromise, notificationsPromise])
 
   res.status(200).json({
     status: 'success',
     message: 'Post created successfully',
-    post
+    post: newPost
   })
 }
 

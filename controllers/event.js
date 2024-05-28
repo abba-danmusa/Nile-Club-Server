@@ -15,8 +15,11 @@ const ObjectId = require('mongodb').ObjectId
  * @returns {Promise}
  */
 exports.createEvent = async (req, res) => {
+  
+  const clubId = new ObjectId(req.user.club)
+
   const clubIsApproved = await Club.findOne({
-    _id: new ObjectId(req.user.club),
+    _id: clubId,
     approval: 'approved'
   })
 
@@ -29,20 +32,42 @@ exports.createEvent = async (req, res) => {
 
   req.body.creator = req.user._id
   req.body.club = req.user.club
+
   const event = new Event(req.body)
-  await event.save()
+
+  const followers = await Follow.find(
+    { club: clubId, user: { $ne: req.user._id } },
+    { _id: 1 }
+  )
+
+  const bulkOps = followers.map(follower => ({
+    insertOne: {
+      document: {
+        user: follower._id,
+        club: req.user.club,
+        type: 'Event',
+        content: event._id,
+        isRead: false,
+      }
+    }
+  }))
+
+  const eventPromise = event.save()
+  const notificationsPromise = Notification.bulkWrite(bulkOps)
+
+  const [newEvent] = await Promise.all([eventPromise, notificationsPromise])
 
   res.status(200).json({
     status: "success",
     message: "Event successfully created",
-    event,
+    event: newEvent,
   });
 };
 
 exports.updateEvent = async (req, res) => {
   const {_id, ...fieldsToUpdate} = req.body
   req.body._id = undefined
-  console.log(fieldsToUpdate)
+
   await Event.findOneAndUpdate(
     { _id: new ObjectId(_id) },
     { ...fieldsToUpdate },
