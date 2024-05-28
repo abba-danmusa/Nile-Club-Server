@@ -967,9 +967,9 @@ exports.clubAnalytics = async (req, res) => {
       $group: {
         _id: "$_id",
         totalMembers: { $sum: 1 },
-        totalPosts: { $addToSet: "$posts" },
-        totalEvents: { $addToSet: "$events" },
-        totalLikes: { $addToSet: "$likes" },
+        totalPosts: { $first: "$posts" },
+        totalEvents: { $first: "$events" },
+        totalLikes: { $first: "$likes" },
         last15Reviews: { $first: "$reviews.review" },
         newMembersPerMonth: {
           $push: {
