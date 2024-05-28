@@ -1073,20 +1073,30 @@ exports.clubAnalytics = async (req, res) => {
   },
   {
     $group: {
-      _id: "$_id",
-      totalMembers: { $sum: 1 },
+      _id: {
+        clubId: "$_id",
+        month: {
+          $dateToString: {
+            format: "%Y-%m",
+            date: "$members.createdAt"
+          }
+        }
+      },
+      count: { $sum: 1 }
+    }
+  },
+  {
+    $group: {
+      _id: "$_id.clubId",
+      totalMembers: { $sum: "$count" },
       totalPosts: { $first: "$posts" },
       totalEvents: { $first: "$events" },
       totalLikes: { $first: "$likes" },
       last15Reviews: { $first: "$reviews.review" },
       newMembersPerMonth: {
         $push: {
-          month: {
-            $dateToString: {
-              format: "%Y-%m",
-              date: "$members.createdAt"
-            }
-          }
+          month: "$_id.month",
+          count: "$count"
         }
       }
     }
@@ -1098,36 +1108,6 @@ exports.clubAnalytics = async (req, res) => {
       totalPosts: { $size: "$totalPosts" },
       totalEvents: { $size: "$totalEvents" },
       totalLikes: { $size: "$totalLikes" },
-      last15Reviews: 1,
-      newMembersPerMonth: 1
-    }
-  },
-  {
-    $unwind: "$newMembersPerMonth"
-  },
-  {
-    $group: {
-      _id: "$_id",
-      totalMembers: { $first: "$totalMembers" },
-      totalPosts: { $first: "$totalPosts" },
-      totalEvents: { $first: "$totalEvents" },
-      totalLikes: { $first: "$totalLikes" },
-      last15Reviews: { $first: "$last15Reviews" },
-      newMembersPerMonth: {
-        $push: {
-          month: "$newMembersPerMonth",
-          count: { $sum: 1 }
-        }
-      }
-    }
-  },
-  {
-    $project: {
-      _id: 1,
-      totalMembers: 1,
-      totalPosts: 1,
-      totalEvents: 1,
-      totalLikes: 1,
       last15Reviews: 1,
       newMembersPerMonth: {
         $slice: [
