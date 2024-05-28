@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 
 const Event = mongoose.model('Event')
 const Like = mongoose.model('Like')
+const Club = mongoose.model('Club')
 
 const ObjectId = require('mongodb').ObjectId
 
