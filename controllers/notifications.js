@@ -9,7 +9,11 @@ exports.getNotifications = async (req, res) => {
   const userId = new ObjectId(req.user._id)
 
   const notifications = await Notification.aggregate([
-    // { $match: {user: userId } },
+    // {
+    //   $match: {
+    //     user: req.user._id
+    //   }
+    // },
     {
       $lookup: {
         from: 'events',
