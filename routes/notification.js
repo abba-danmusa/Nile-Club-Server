@@ -9,6 +9,8 @@ const notification = require("../controllers/notifications")
 
 router.use("/", catchErrors(requireAuthentication))
 
+router.post('/', catchErrors(notification.setNotifications))
+
 router.get('/', catchErrors(notification.getNotifications))
 
 module.exports = router

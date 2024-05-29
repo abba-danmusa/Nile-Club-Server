@@ -40,12 +40,32 @@ exports.getNotifications = async (req, res) => {
         as: 'club'
       }
     },
-    { $unwind: '$club'}
+    { $unwind: '$club' },
+    { $sort: {createdAt: -1}}
   ])
 
   res.status(200).json({
     status: 'success',
     message: 'Retrieved successfully',
     notifications
+  })
+}
+
+exports.setNotifications = async (req, res) => {
+  const newNotifications = req.body.newNotifications
+  const ids = newNotifications.map(item => item._id)
+  if (ids.length == 0) {
+    return res.status(200).json({
+      status: 'success',
+      message: 'No ids'
+    })
+  }
+  await Notification.updateMany(
+    { _id: { $in: [...ids] } },
+    {  isRead: true },
+  )
+  res.status(200).json({
+    status: 'success',
+    message: 'success'
   })
 }
