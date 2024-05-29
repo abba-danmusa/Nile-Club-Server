@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const Event = mongoose.model('Event')
 const Like = mongoose.model('Like')
 const Club = mongoose.model('Club')
+const Follow = mongoose.model('Follow')
 const Notification = mongoose.model('Notification')
 
 const ObjectId = require('mongodb').ObjectId
