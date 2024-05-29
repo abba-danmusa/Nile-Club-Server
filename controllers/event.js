@@ -39,13 +39,13 @@ exports.createEvent = async (req, res) => {
 
   const followers = await Follow.find(
     { club: clubId, user: { $ne: req.user._id } },
-    { _id: 1 }
+    { user: 1 }
   )
 
   const bulkOps = followers.map(follower => ({
     insertOne: {
       document: {
-        user: follower._id,
+        user: follower.user,
         club: req.user.club,
         type: 'Event',
         content: event._id,

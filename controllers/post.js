@@ -31,13 +31,15 @@ exports.createPost = async (req, res) => {
 
   const followers = await Follow.find(
     { club: clubId, user: { $ne: req.user._id } },
-    { _id: 1 }
+    { user: 1 }
   )
+
+  console.log(followers)
   
   const bulkOps = followers.map(follower => ({
     insertOne: {
       document: {
-        user: follower._id,
+        user: follower.user,
         club: req.user.club,
         type: 'Post',
         content: post._id,
