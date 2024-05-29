@@ -7,7 +7,7 @@ const Notification = mongoose.model('Notification')
 exports.getNotifications = async (req, res) => {
   
   const userId = new ObjectId(req.user._id)
-  console.log(userId)
+
   const notifications = await Notification.aggregate([
     // { $match: {user: userId } },
     {
